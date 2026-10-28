@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, Clock, MoreVertical, Orbit, PlusCircle, Rocket, Satellite, Globe, Telescope } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Clock, MoreVertical, Orbit, Pause, Play, PlusCircle, RotateCcw, Rocket, Satellite, Globe, Telescope } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -21,6 +21,7 @@ const COLORS = ["oklch(0.55 0.15 250)", "oklch(0.62 0.22 25)", "oklch(0.75 0.14 
 const PRIOS = [Rocket, Satellite, Orbit, Globe];
 const PLANETS = ["oklch(0.45 0.12 250)", "oklch(0.45 0.06 50)", "oklch(0.75 0.06 220)", "oklch(0.7 0.18 50)", "oklch(0.35 0.1 260)", "oklch(0.75 0.06 20)", "oklch(0.85 0.03 20)", "oklch(0.75 0.18 55)"];
 const KEY = "niklas-tasks";
+const TIMER_START = 45 * 60;
 
 function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -28,6 +29,9 @@ function App() {
   const [screen, setScreen] = useState<Screen>("list");
   const [editing, setEditing] = useState<Task | null>(null);
   const [day, setDay] = useState("");
+  const [timerLeft, setTimerLeft] = useState(TIMER_START);
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [timerStarted, setTimerStarted] = useState(false);
 
   useEffect(() => {
     try { setTasks(JSON.parse(localStorage.getItem(KEY) || "[]")); } catch {}
@@ -35,6 +39,13 @@ function App() {
     setLoaded(true);
   }, []);
   useEffect(() => { if (loaded) localStorage.setItem(KEY, JSON.stringify(tasks)); }, [tasks, loaded]);
+
+  useEffect(() => {
+    if (!timerRunning || timerLeft <= 0) return;
+    const id = setInterval(() => setTimerLeft((s) => Math.max(0, s - 1)), 1000);
+    return () => clearInterval(id);
+  }, [timerRunning, timerLeft]);
+  useEffect(() => { if (timerLeft === 0) setTimerRunning(false); }, [timerLeft, timerRunning]);
 
   const done = tasks.filter((t) => t.done).length;
   const pct = tasks.length ? Math.round((done / tasks.length) * 100) : 0;
@@ -81,10 +92,10 @@ function App() {
             {tasks.filter((t) => !t.done).map((t) => (
               <TaskRow key={t.id} t={t} onToggle={() => update(t.id, { done: true })} onMenu={() => { setEditing(t); setScreen("edit"); }} />
             ))}
-            <div className="bar rounded-full flex items-center gap-3 px-4 py-2 text-[11px] my-6">
-              <Clock className="size-5 shrink-0" />
-              <span className="text-center">Sätt timer på 45 min. Get ready for take off! Hur många uppgifter klarar du?</span>
-            </div>
+            <Timer left={timerLeft} running={timerRunning} started={timerStarted}
+              onStart={() => { setTimerStarted(true); setTimerRunning(true); }}
+              onToggle={() => setTimerRunning((r) => !r)}
+              onReset={() => { setTimerLeft(TIMER_START); setTimerRunning(false); setTimerStarted(false); }} />
             {done > 0 && (
               <>
                 <div className="bar flex justify-between items-center px-3 py-3 text-sm font-bold">Avklarade uppgifter <Check className="size-5" /></div>
@@ -185,4 +196,44 @@ function TaskForm({ initial, onSave, onCancel }: { initial: Task | null; onSave:
 
 function BarButton({ className = "", ...p }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return <button {...p} className={`bar flex items-center justify-center gap-2 px-10 py-3 text-sm font-bold shadow-md hover:brightness-125 transition ${className}`} />;
+}
+
+function Timer({ left, running, started, onStart, onToggle, onReset }: {
+  left: number; running: boolean; started: boolean; onStart: () => void; onToggle: () => void; onReset: () => void;
+}) {
+  const mm = String(Math.floor(left / 60)).padStart(2, "0");
+  const ss = String(left % 60).padStart(2, "0");
+  const shell = "bar rounded-full flex items-center gap-3 px-4 py-2 text-[11px] my-6 w-full shadow-md";
+
+  if (!started) {
+    return (
+      <button onClick={onStart} className={`${shell} text-left hover:brightness-125 transition`}>
+        <Clock className="size-5 shrink-0" />
+        <span className="text-center flex-1">Sätt timer på 45 min. Get ready for take off! Hur många uppgifter klarar du?</span>
+        <Play className="size-5 shrink-0" />
+      </button>
+    );
+  }
+
+  if (left === 0) {
+    return (
+      <div className={shell}>
+        <Rocket className="size-5 shrink-0" />
+        <span className="text-center flex-1 font-bold text-sm">Tiden är ute – TAKE OFF!</span>
+        <button aria-label="Nollställ timer" onClick={onReset} className="shrink-0 hover:brightness-125"><RotateCcw className="size-5" /></button>
+      </div>
+    );
+  }
+
+  return (
+    <div className={shell}>
+      <button aria-label={running ? "Pausa timer" : "Starta timer"} onClick={onToggle} className="shrink-0 hover:brightness-125">
+        {running ? <Pause className="size-5" /> : <Play className="size-5" />}
+      </button>
+      <button onClick={onToggle} className="flex-1 tabular-nums text-lg font-bold tracking-widest text-center">
+        {mm}:{ss}
+      </button>
+      <button aria-label="Nollställ timer" onClick={onReset} className="shrink-0 hover:brightness-125"><RotateCcw className="size-5" /></button>
+    </div>
+  );
 }
