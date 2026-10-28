@@ -81,10 +81,10 @@ function App() {
             {tasks.filter((t) => !t.done).map((t) => (
               <TaskRow key={t.id} t={t} onToggle={() => update(t.id, { done: true })} onMenu={() => { setEditing(t); setScreen("edit"); }} />
             ))}
-            <div className="bar rounded-full flex items-center gap-3 px-4 py-2 text-[11px] my-6">
-              <Clock className="size-5 shrink-0" />
-              <span className="text-center">Sätt timer på 45 min. Get ready for take off! Hur många uppgifter klarar du?</span>
-            </div>
+            <Timer left={timerLeft} running={timerRunning} started={timerStarted}
+              onStart={() => { setTimerStarted(true); setTimerRunning(true); }}
+              onToggle={() => setTimerRunning((r) => !r)}
+              onReset={() => { setTimerLeft(TIMER_START); setTimerRunning(false); setTimerStarted(false); }} />
             {done > 0 && (
               <>
                 <div className="bar flex justify-between items-center px-3 py-3 text-sm font-bold">Avklarade uppgifter <Check className="size-5" /></div>
