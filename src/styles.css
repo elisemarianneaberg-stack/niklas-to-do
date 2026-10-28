@@ -142,3 +142,28 @@
     color: var(--color-foreground);
   }
 }
+
+:root {
+  --navy: oklch(0.3 0.08 255);
+  --navy-light: oklch(0.45 0.1 250);
+  --sun: oklch(0.8 0.16 70);
+  --sun-light: oklch(0.86 0.1 80);
+  --field: oklch(0.93 0.01 20);
+  --alert: oklch(0.58 0.23 27);
+  --primary: var(--navy);
+  --foreground: var(--navy);
+  --gradient-bar: linear-gradient(90deg, var(--navy), var(--navy-light));
+  --gradient-bg: linear-gradient(180deg, var(--sun-light), var(--sun));
+  --gradient-planets: linear-gradient(180deg, oklch(0.6 0.22 28), oklch(0.5 0.2 25));
+}
+@theme inline {
+  --color-navy: var(--navy);
+  --color-sun: var(--sun);
+  --color-field: var(--field);
+  --color-alert: var(--alert);
+  --font-display: "Chakra Petch", sans-serif;
+}
+@utility bar { background: var(--gradient-bar); color: oklch(0.98 0 0); }
+@utility bg-space { background: var(--gradient-bg); }
+@utility bg-planets { background: var(--gradient-planets); }
+body { font-family: var(--font-display); }
