@@ -21,6 +21,7 @@ const COLORS = ["oklch(0.55 0.15 250)", "oklch(0.62 0.22 25)", "oklch(0.75 0.14 
 const PRIOS = [Rocket, Satellite, Orbit, Globe];
 const PLANETS = ["oklch(0.45 0.12 250)", "oklch(0.45 0.06 50)", "oklch(0.75 0.06 220)", "oklch(0.7 0.18 50)", "oklch(0.35 0.1 260)", "oklch(0.75 0.06 20)", "oklch(0.85 0.03 20)", "oklch(0.75 0.18 55)"];
 const KEY = "niklas-tasks";
+const TIMER_START = 45 * 60;
 
 function App() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -38,6 +39,13 @@ function App() {
     setLoaded(true);
   }, []);
   useEffect(() => { if (loaded) localStorage.setItem(KEY, JSON.stringify(tasks)); }, [tasks, loaded]);
+
+  useEffect(() => {
+    if (!timerRunning || timerLeft <= 0) return;
+    const id = setInterval(() => setTimerLeft((s) => Math.max(0, s - 1)), 1000);
+    return () => clearInterval(id);
+  }, [timerRunning, timerLeft]);
+  useEffect(() => { if (timerLeft === 0) setTimerRunning(false); }, [timerLeft, timerRunning]);
 
   const done = tasks.filter((t) => t.done).length;
   const pct = tasks.length ? Math.round((done / tasks.length) * 100) : 0;
