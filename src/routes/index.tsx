@@ -28,6 +28,9 @@ function App() {
   const [screen, setScreen] = useState<Screen>("list");
   const [editing, setEditing] = useState<Task | null>(null);
   const [day, setDay] = useState("");
+  const [timerLeft, setTimerLeft] = useState(TIMER_START);
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [timerStarted, setTimerStarted] = useState(false);
 
   useEffect(() => {
     try { setTasks(JSON.parse(localStorage.getItem(KEY) || "[]")); } catch {}
