@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, Clock, MoreVertical, Orbit, PlusCircle, Rocket, Satellite, Globe, Telescope } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Clock, MoreVertical, Orbit, Pause, Play, PlusCircle, RotateCcw, Rocket, Satellite, Globe, Telescope } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -196,4 +196,44 @@ function TaskForm({ initial, onSave, onCancel }: { initial: Task | null; onSave:
 
 function BarButton({ className = "", ...p }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return <button {...p} className={`bar flex items-center justify-center gap-2 px-10 py-3 text-sm font-bold shadow-md hover:brightness-125 transition ${className}`} />;
+}
+
+function Timer({ left, running, started, onStart, onToggle, onReset }: {
+  left: number; running: boolean; started: boolean; onStart: () => void; onToggle: () => void; onReset: () => void;
+}) {
+  const mm = String(Math.floor(left / 60)).padStart(2, "0");
+  const ss = String(left % 60).padStart(2, "0");
+  const shell = "bar rounded-full flex items-center gap-3 px-4 py-2 text-[11px] my-6 w-full shadow-md";
+
+  if (!started) {
+    return (
+      <button onClick={onStart} className={`${shell} text-left hover:brightness-125 transition`}>
+        <Clock className="size-5 shrink-0" />
+        <span className="text-center flex-1">Sätt timer på 45 min. Get ready for take off! Hur många uppgifter klarar du?</span>
+        <Play className="size-5 shrink-0" />
+      </button>
+    );
+  }
+
+  if (left === 0) {
+    return (
+      <div className={shell}>
+        <Rocket className="size-5 shrink-0" />
+        <span className="text-center flex-1 font-bold text-sm">Tiden är ute – TAKE OFF!</span>
+        <button aria-label="Nollställ timer" onClick={onReset} className="shrink-0 hover:brightness-125"><RotateCcw className="size-5" /></button>
+      </div>
+    );
+  }
+
+  return (
+    <div className={shell}>
+      <button aria-label={running ? "Pausa timer" : "Starta timer"} onClick={onToggle} className="shrink-0 hover:brightness-125">
+        {running ? <Pause className="size-5" /> : <Play className="size-5" />}
+      </button>
+      <button onClick={onToggle} className="flex-1 tabular-nums text-lg font-bold tracking-widest text-center">
+        {mm}:{ss}
+      </button>
+      <button aria-label="Nollställ timer" onClick={onReset} className="shrink-0 hover:brightness-125"><RotateCcw className="size-5" /></button>
+    </div>
+  );
 }
